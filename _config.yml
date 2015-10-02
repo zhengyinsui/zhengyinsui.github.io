@@ -8,12 +8,12 @@ highlighter: pygments
 # Themes are encouraged to use these universal variables
 # so be sure to set them if your theme uses them.
 #
-title : GDGTs
+title : zhengyinsui
 tagline: blog
 author :
-  name : James Dillon
-  email : james_dillon@brown.edu
-  github : GDGTs
+  name : yinsui zheng
+  email : yinsui_zheng@brown.edu
+  github : zhengyinsui
 
 # The production_url is only used when full-domain names are needed
 # such as sitemap.txt
@@ -106,4 +106,3 @@ JB :
   # and include your custom code. Your custom file must be defined at:
   #   ./_includes/custom/[HELPER]
   # where [HELPER] is the name of the helper you are overriding.
-

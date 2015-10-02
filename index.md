@@ -5,7 +5,7 @@ header: Brown University
 ---
 {% include JB/setup %}
 
-The laboratory component consists of four sessions for the **Fall 2014** semester:
+The laboratory component consists of four sessions for the **Fall 2015** semester:
 
 <table class="table table-striped table-hover ">
 
@@ -24,7 +24,7 @@ The laboratory component consists of four sessions for the **Fall 2014** semeste
 <tbody>
   <tr>
   <td>1</td>
-  <td>9/13/2014</td>
+  <td>9/19/2015</td>
   <td>
       <a href="/map.html"><span class="label label-primary">Sampling</span></a>
   </td>
@@ -40,27 +40,11 @@ The laboratory component consists of four sessions for the **Fall 2014** semeste
   <td><a href="https://github.com/GDGTs/gdgts.github.io/blob/master/_includes/Geo1370%20-%20Hundred%20Acre%20Cove%20Data.xlsx?raw=true">Data</a></td>
   </tr>
 
-  <tr>
-  <td>2</td>
-  <td>9/30/2014</td>
-  <td>
-      <a href="/nutrients.html"><span class="label label-success">Nutrients</span></a>
-  </td>
-  <td>
-      <span class="label label-default">NO<sub>3</sub></span>
-      <span class="label label-default">NH<sub>4</sub></span>
-      <span class="label label-default">PO<sub>4</sub></span>
-      <span class="label label-default">SiO<sub>2</sub></span></td>
-  <td>
-      <span class="label label-info">UV-Vis</span>
-  </td>
-  <td>10/17/2014</td>
-     <td><a href="https://github.com/GDGTs/gdgts.github.io/blob/master/_includes/Geo1370%20-%20Nutrient%20Lab%20Data.xlsx?raw=true">Data</a></td>
-  </tr>
+
 
  <tr>
-  <td>3</td>
-  <td>10/14/2014</td>
+  <td>2</td>
+  <td>09/30/2015</td>
   <td>
       <a href="/metals.html"><span class="label label-warning">Metals</span>
   </td></a>
@@ -77,13 +61,31 @@ The laboratory component consists of four sessions for the **Fall 2014** semeste
   <td>
       <span class="label label-info">ICP-MS</span>
   </td>
-  <td>12/2/2014</td>
+  <td>10/20/2015</td>
       <td><a href="https://github.com/GDGTs/gdgts.github.io/blob/master/_includes/Geo1370%20-%20Metals%20Lab%20Data.xlsx?raw=true">Data</a></td>
   </tr>
 
   <tr>
+  <td>3</td>
+  <td>10/14/2015</td>
+  <td>
+      <a href="/nutrients.html"><span class="label label-success">Nutrients</span></a>
+  </td>
+  <td>
+      <span class="label label-default">NO<sub>3</sub></span>
+      <span class="label label-default">NH<sub>4</sub></span>
+      <span class="label label-default">PO<sub>4</sub></span>
+      <span class="label label-default">SiO<sub>2</sub></span></td>
+  <td>
+      <span class="label label-info">UV-Vis</span>
+  </td>
+  <td>11/02/2015</td>
+     <td><a href="https://github.com/GDGTs/gdgts.github.io/blob/master/_includes/Geo1370%20-%20Nutrient%20Lab%20Data.xlsx?raw=true">Data</a></td>
+  </tr>
+
+  <tr>
   <td>4</td>
-  <td>11/4/2014</td>
+  <td>11/4/2015</td>
   <td>
       <a href="/organics.html"><span class="label label-danger">Organics</span>
   </td>
@@ -93,7 +95,7 @@ The laboratory component consists of four sessions for the **Fall 2014** semeste
   <td>
       <span class="label label-info">GC-MS</span>
   </td>
-  <td>N/A</td>
+  <td>11/22/2015</td>
   <td>--</td>
   </tr>
 
@@ -103,9 +105,9 @@ The laboratory component consists of four sessions for the **Fall 2014** semeste
 See below for information regarding the problem sets assigned during class.
 <br>
 
-<table class="table table-striped table-hover ">
+<!-- <table class="table table-striped table-hover ">
 
-<thead>
+ <thead>
   <tr>
     <th>#</th>
     <th>Date</th>
@@ -181,4 +183,4 @@ See below for information regarding the problem sets assigned during class.
   </tr>
 
   </tbody>
-</table>
+</table> -->
