@@ -6,4 +6,2395 @@ group: data
 ---
 {% include JB/setup %}
 
-<center><iframe src="http://bl.ocks.org/GDGTs/raw/c61b213f416123876164" width="100%" height="550" seamless frameBorder="0" scrolling="no"></iframe></center>
+<!-- <center><iframe src="http://bl.ocks.org/GDGTs/raw/c61b213f416123876164" width="100%" height="550" seamless frameBorder="0" scrolling="no"></iframe></center> -->
+<html>
+<meta charset="utf-8">
+
+<style>
+
+body {
+  font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+  font-size: 13px;
+  position: relative;
+}
+
+.axis text {
+    font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+    font-size: 13px;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  stroke-width: 2;
+  shape-rendering: crispEdges;
+}
+
+label {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+}
+
+</style>
+
+<head>
+
+<link rel="stylesheet" href="leaflet.css"/>
+
+<script src="jquery.min.js"></script>
+<script src="d3.v3.min.js"></script>
+<script src="leaflet.js"></script>
+
+
+</head>
+
+<body>
+
+<table>
+<td>
+    <div id="map" style="width: 550; height: 500px"></div>
+<td>
+    <div id="chart" style="width: 550; height: 500px"></div>
+</td>
+</table>
+</body>
+
+<script>
+
+d3.json('ClassData3.json',function (data) {
+
+var body = d3.select('#chart')
+
+var selectData = [ { "text" : "Latitude" },
+                   { "text" : "Longitude" },
+                   { "text" : "Temperature" },
+                   { "text" : "pH" },
+                   { "text" : "DO" },
+                   { "text" : "Alkalinity" },
+                   { "text" : "Salinity" },
+                   { "text" : "Conductivity" },
+                   { "text" : "NH4" },
+                   { "text" : "NO3" },
+                   { "text" : "PO4" },
+                   { "text" : "SiO2" },
+                   { "text" : "Li" },
+                   { "text" : "B" },
+                   { "text" : "Mg" },
+                   { "text" : "Ca" },
+                   { "text" : "V" },
+                   { "text" : "Cr" },
+                   { "text" : "Mn" },
+                   { "text" : "Fe" },
+                   { "text" : "Ni" },
+                   { "text" : "Cu" },
+                   { "text" : "Zn" },
+                   { "text" : "As" },
+                   { "text" : "Se" },
+                   { "text" : "Sr" },
+                   { "text" : "Mo" },
+                   { "text" : "Sb" },
+                   { "text" : "Ba" },
+                   { "text" : "Pb" }
+                 ]
+
+var colorData = [  { "text" : "X-Values" },
+                   { "text" : "Y-Values" }
+                ]
+
+var span = body.append('span')
+    .text('X-Axis: ')
+
+var yInput = body.append('select')
+    .attr('id','xSelect')
+    .on('change', xChange)
+    .selectAll('option')
+    .data(selectData)
+    .enter()
+    .append('option')
+    .attr('value', function (d) { return d.text })
+    .text(function (d) { return d.text ;})
+    body.append('br')
+
+var span = body.append('span')
+    .text('Y-Axis: ')
+
+var yInput = body.append('select')
+    .attr('id','ySelect')
+    .on('change',yChange)
+    .selectAll('option')
+    .data(selectData)
+    .enter()
+    .append('option')
+    .attr('value', function (d) { return d.text })
+    .text(function (d) { return d.text ;})
+    body.append('br')
+
+var margin = { top: 30, right: 80, bottom: 90, left: 110 }
+var h = 500 - margin.top - margin.bottom
+var w = 600 - margin.left - margin.right
+
+// Map Coordinates
+var map = new L.map('map').setView([41.7602, -71.3166], 14);
+
+// Map Type
+function satellite_layer () {
+
+    // Fetch Map
+    return L.tileLayer('http://{s}.{base}.maps.cit.api.here.com/maptile/2.1/maptile/{mapID}/satellite.day/{z}/{x}/{y}/256/png8?app_id={app_id}&app_code={app_code}',
+        {
+            attribution: '',
+            subdomains: '1234',
+            mapID: 'newest',
+            app_id: 'P1vQC2llXiUYcDliEVOM',
+            app_code: '-4sbk8a-0_BtrvZj5l8KCQ',
+            base: 'aerial',
+            minZoom: 12,
+            maxZoom: 18,
+        })
+            .addTo(map);
+    map._initPathRoot()
+}
+
+function standard_layer () {
+
+    // Fetch Map
+    return L.tileLayer('http://{s}.tile.openstreetmap.de/tiles/osmde/{z}/{x}/{y}.png',
+        {
+            attribution: '',
+            minZoom: 12,
+            maxZoom: 18,
+        })
+            .addTo(map);
+    map._initPathRoot()
+}
+
+// Initialize Layer
+var map_layer = satellite_layer();
+
+function update_map (id) {
+    map.removeLayer(map_layer);
+    if (id == "standard") {map_layer = standard_layer()}
+    else if (id == "satellite") {map_layer = satellite_layer()}
+}
+
+// Initialize map layer
+map._initPathRoot()
+
+var svgmap = d3.select("#map").select("svg"),
+	gmap = svgmap.append("g");
+
+var xScale = d3.scale.linear()
+    .domain([d3.min(data,function (d) { return d['Latitude'] }),
+             d3.max(data,function (d) { return d['Latitude'] })])
+    .range([0, w])
+
+var ymin = d3.min(data,function (d) { return d['Latitude']}),
+    ymax = d3.max(data,function (d) { return d['Latitude']});
+
+var yScale = d3.scale.linear()
+    .domain([ymin, ymax])
+    .range([h,0])
+
+var colorScale = d3.scale.linear()
+    .domain([ymin, ymax])
+    .range(['#003EB0','#FD2A26'])
+
+var svg = body.append('svg')
+    .attr('height', h + margin.top + margin.bottom)
+    .attr('width', w + margin.left + margin.right)
+    .append('g')
+    .attr('transform','translate(' + margin.left + ',' + margin.top + ')')
+
+var xAxis = d3.svg.axis()
+    .scale(xScale)
+    .ticks(5)
+    .orient('bottom')
+
+var yAxis = d3.svg.axis()
+    .scale(yScale)
+    .ticks(5)
+    .orient('left')
+
+var circles = svg.selectAll('circle')
+    .data(data)
+    .enter()
+    .append('circle')
+    .attr('cx', function (d) { return xScale(d['Latitude']) })
+    .attr('cy', function (d) { return yScale(d['Latitude']) })
+    .attr('r', '6.5')
+    .attr("class", function(d) { return "circle " +d.Sample_ID; })
+    .attr('fill', function(d){return colorScale(d.Latitude)})
+    .style("opacity", 0.9)
+    .style("stroke", function(d) {return d3.rgb(colorScale(d.Latitude)).darker(); })
+    .style("stroke-width", 2)
+    .style("stroke-opacity", 0.1)
+    .on("mouseover", function(d) {
+        d3.selectAll("." + d.Sample_ID)
+            .transition()
+            .duration(100)
+            .attr('r',15) })
+    .on("mouseout", function(d) {
+        d3.selectAll("." + d.Sample_ID)
+            .transition()
+            .duration(100)
+            .attr('r', 6.5) })
+    .append('title')
+
+svg.append('g')
+    .attr('class','axis')
+    .attr('id','xAxis')
+    .attr('transform', 'translate(0,' + (h+10) + ')')
+    .call(xAxis)
+    .append('text')
+    .attr('id','xAxisLabel')
+    .attr('y', 30)
+    .attr('x', w/2)
+    .attr('dy','.61em')
+    .attr("text-anchor", "middle")
+    .style('font-size', 15)
+    .text('Latitude')
+
+svg.append('g')
+    .attr('class','axis')
+    .attr('id','yAxis')
+    .attr("transform", "translate(-10,0)")
+    .call(yAxis)
+    .append('text')
+    .attr('id', 'yAxisLabel')
+    .attr('transform','rotate(-90)')
+    .attr('x', -h/2)
+    .attr('y',-h/4)
+    .attr('dy','.71em')
+    .attr("text-anchor", "middle")
+    .style('font-size', 15)
+    .text('Latitude')
+
+data.forEach(function(d) {d.LatLng = new L.LatLng(d.Latitude, d.Longitude)})
+
+// Assign data
+var points = gmap.selectAll("circle")
+    .attr("class", "points")
+    .data(data)
+    .enter()
+    .append("circle")
+    .style("opacity", 0.8)
+    .style("fill", function(d) {return colorScale(d.Latitude)})
+    .attr("r", 6)
+    .attr("class", function(d) { return "circle " +d.Sample_ID; })
+    .on("mouseover", function(d) {
+        d3.selectAll("." + d.Sample_ID)
+            .transition()
+            .duration(100)
+            .attr('r',15) })
+    .on("mouseout", function(d) {
+        d3.selectAll("." + d.Sample_ID)
+            .transition()
+            .duration(100)
+            .attr('r', 6) })
+
+// Show map
+map.on("viewreset", update);
+update();
+
+// Update map zoom
+function update() {
+    points.attr("transform", function(d) {return "translate("+
+        map.latLngToLayerPoint(d.LatLng).x +","+
+        map.latLngToLayerPoint(d.LatLng).y +")"; })
+    }
+
+update()
+
+var xmin = 0,
+    xmax = 0,
+    ymin = 0,
+    ymax = 0,
+    xvalue,
+    yvalue;
+
+function yChange() {
+
+    var value = this.value
+
+    xvalue = d3.select('#xAxisLabel')[0][0].textContent
+
+    ymin = d3.min(data, function (d) {return d[value]});
+    ymax = d3.max(data, function (d) {return d[value]});
+
+    yScale.domain([ymin, ymax]);
+    yAxis.scale(yScale)
+
+    d3.select('#yAxis')
+        .transition().duration(1000)
+        .call(yAxis)
+
+    d3.select('#yAxisLabel')
+        .text(value)
+
+    svg.selectAll('circle')
+        .transition().duration(1000)
+        .delay(100)
+        .style("opacity", function(d) { return (d[value] !==null && d[value] >= ymin && d[xvalue] !==null) ? 0.9 : 0.0; })
+        .attr('cy', function (d) { return yScale(d[value])})
+
+    gmap.selectAll("circle")
+        .style("opacity", function(d) { return (d[value] !==null && d[value] >= ymin && d[xvalue] !==null) ? 0.9 : 0.0; })
+
+}
+
+function xChange() {
+
+    var value = this.value
+    yvalue = d3.select('#yAxisLabel')[0][0].textContent
+
+    xmin = d3.min(data, function (d) {return d[value]});
+    xmax = d3.max(data, function (d) {return d[value]});
+
+    xScale.domain([xmin, xmax])
+    xAxis.scale(xScale)
+
+    d3.select('#xAxis')
+        .transition().duration(1000)
+        .call(xAxis)
+
+    d3.select('#xAxisLabel')
+        .transition().duration(1000)
+        .text(value)
+
+    var xcircle = svg.selectAll('circle')
+        .transition().duration(1000)
+        .delay(200)
+        .style("opacity", function(d) { return (d[value] !==null && d[value] >= xmin && d[yvalue] !==null) ? 0.9 : 0.0; })
+        .attr('cx', function (d) { return xScale(d[value]) })
+
+    gmap.selectAll("circle")
+        .style("opacity", function(d) { return (d[value] !==null && d[value] >= xmin && d[yvalue] !==null) ? 0.9 : 0.0; })
+  }
+
+function colorChange() {
+
+var value = d3.select('#colorSelect')[0][0].value
+var current_xvalue = d3.select('#xAxisLabel')[0][0].textContent
+var current_yvalue = d3.select('#yAxisLabel')[0][0].textContent
+
+switch (value) {
+
+    case "X-Values":
+        var xymin = d3.min(data, function (d) { return d[current_xvalue]}),
+            xymax = d3.max(data, function (d) { return d[current_xvalue]});
+        var selectvalue = xvalue;
+        break;
+
+    case "Y-Values":
+        var xymin = d3.min(data, function (d) { return d[current_yvalue]}),
+            xymax = d3.max(data, function (d) { return d[current_yvalue]});
+        var selectvalue = yvalue;
+        break;
+};
+
+colorScale.domain([xymin, xymax])
+    .range(['#003EB0','#FD2A26'])
+
+svg.selectAll('circle')
+    .attr('fill', function(d){return colorScale(d[selectvalue])})
+    .style("stroke", function(d) {return d3.rgb(colorScale(d[selectvalue])).darker(); });
+
+gmap.selectAll('circle')
+.attr('fill', function(d){return d3.selectAll("." + d.Sample_ID)})
+}
+});
+
+</script>
+</html>
+
+2015_data.json#
+
+[
+  {
+    "Year":2015,
+    "Sample_ID":"A1",
+    "Latitude":41.75677,
+    "Longitude":-71.57978,
+    "Temperature":null,
+    "pH":7.24,
+    "Alkalinity":13.6,
+    "DO":8.06,
+    "Conductivity":null,
+    "Salinity":null,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A2",
+    "Latitude":41.76204,
+    "Longitude":-71.42053,
+    "Temperature":null,
+    "pH":6.71,
+    "Alkalinity":20.4,
+    "DO":6.1,
+    "Conductivity":null,
+    "Salinity":null,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A3",
+    "Latitude":41.76463,
+    "Longitude":-71.39064,
+    "Temperature":null,
+    "pH":7.03,
+    "Alkalinity":20.4,
+    "DO":4.4,
+    "Conductivity":null,
+    "Salinity":null,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A4",
+    "Latitude":41.76463,
+    "Longitude":-71.39064,
+    "Temperature":null,
+    "pH":6.67,
+    "Alkalinity":null,
+    "DO":2.5,
+    "Conductivity":null,
+    "Salinity":null,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A5",
+    "Latitude":41.76542,
+    "Longitude":-71.3873,
+    "Temperature":null,
+    "pH":6.82,
+    "Alkalinity":27.2,
+    "DO":2.4,
+    "Conductivity":null,
+    "Salinity":null,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A6",
+    "Latitude":41.75053,
+    "Longitude":-71.31985,
+    "Temperature":null,
+    "pH":8.8,
+    "Alkalinity":null,
+    "DO":null,
+    "Conductivity":null,
+    "Salinity":null,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A7",
+    "Latitude":41.75632,
+    "Longitude":-71.32183,
+    "Temperature":null,
+    "pH":null,
+    "Alkalinity":40.8,
+    "DO":null,
+    "Conductivity":null,
+    "Salinity":null,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A8",
+    "Latitude":41.76328,
+    "Longitude":-71.42276,
+    "Temperature":null,
+    "pH":8.17,
+    "Alkalinity":null,
+    "DO":7.24,
+    "Conductivity":null,
+    "Salinity":23.8,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A9",
+    "Latitude":41.77352,
+    "Longitude":-71.32267,
+    "Temperature":null,
+    "pH":8.16,
+    "Alkalinity":null,
+    "DO":5.99,
+    "Conductivity":null,
+    "Salinity":24,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A10",
+    "Latitude":41.78108,
+    "Longitude":-71.32856,
+    "Temperature":null,
+    "pH":8.01,
+    "Alkalinity":null,
+    "DO":0.19,
+    "Conductivity":null,
+    "Salinity":22.9,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A11",
+    "Latitude":41.78371,
+    "Longitude":-71.33014,
+    "Temperature":null,
+    "pH":8.25,
+    "Alkalinity":null,
+    "DO":3.53,
+    "Conductivity":null,
+    "Salinity":16.2,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A12",
+    "Latitude":41.75473,
+    "Longitude":-71.31901,
+    "Temperature":null,
+    "pH":8.33,
+    "Alkalinity":47.6,
+    "DO":8.26,
+    "Conductivity":null,
+    "Salinity":null,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A13",
+    "Latitude":41.7542,
+    "Longitude":-71.3178,
+    "Temperature":null,
+    "pH":8.12,
+    "Alkalinity":34,
+    "DO":3.35,
+    "Conductivity":null,
+    "Salinity":null,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A14",
+    "Latitude":41.7588,
+    "Longitude":-71.31716,
+    "Temperature":null,
+    "pH":7.52,
+    "Alkalinity":88.4,
+    "DO":null,
+    "Conductivity":null,
+    "Salinity":null,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A15",
+    "Latitude":41.76244,
+    "Longitude":-71.31195,
+    "Temperature":null,
+    "pH":null,
+    "Alkalinity":null,
+    "DO":null,
+    "Conductivity":null,
+    "Salinity":null,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A16",
+    "Latitude":41.75498,
+    "Longitude":-71.31908,
+    "Temperature":null,
+    "pH":null,
+    "Alkalinity":null,
+    "DO":null,
+    "Conductivity":null,
+    "Salinity":null,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A17",
+    "Latitude":41.76033,
+    "Longitude":-71.30937,
+    "Temperature":null,
+    "pH":null,
+    "Alkalinity":81.6,
+    "DO":3.8,
+    "Conductivity":null,
+    "Salinity":null,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A18",
+    "Latitude":41.76248,
+    "Longitude":-71.31474,
+    "Temperature":null,
+    "pH":null,
+    "Alkalinity":81.6,
+    "DO":4.6,
+    "Conductivity":null,
+    "Salinity":null,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A19",
+    "Latitude":41.75639,
+    "Longitude":-71.31526,
+    "Temperature":null,
+    "pH":null,
+    "Alkalinity":null,
+    "DO":null,
+    "Conductivity":null,
+    "Salinity":null,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A20",
+    "Latitude":41.76279,
+    "Longitude":-71.30886,
+    "Temperature":null,
+    "pH":null,
+    "Alkalinity":null,
+    "DO":null,
+    "Conductivity":null,
+    "Salinity":null,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A21",
+    "Latitude":41.75473,
+    "Longitude":-71.31901,
+    "Temperature":null,
+    "pH":null,
+    "Alkalinity":null,
+    "DO":null,
+    "Conductivity":null,
+    "Salinity":null,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A22",
+    "Latitude":41.75046,
+    "Longitude":-71.3168,
+    "Temperature":null,
+    "pH":7.94,
+    "Alkalinity":null,
+    "DO":null,
+    "Conductivity":null,
+    "Salinity":null,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A23",
+    "Latitude":41.75945,
+    "Longitude":-71.31783,
+    "Temperature":null,
+    "pH":7.9,
+    "Alkalinity":null,
+    "DO":9.35,
+    "Conductivity":null,
+    "Salinity":null,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A24",
+    "Latitude":41.7603,
+    "Longitude":-71.31559,
+    "Temperature":null,
+    "pH":7.73,
+    "Alkalinity":null,
+    "DO":null,
+    "Conductivity":null,
+    "Salinity":null,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A25",
+    "Latitude":41.7771,
+    "Longitude":-71.32298,
+    "Temperature":null,
+    "pH":7.93,
+    "Alkalinity":null,
+    "DO":null,
+    "Conductivity":null,
+    "Salinity":null,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A26",
+    "Latitude":41.76471,
+    "Longitude":-71.3208,
+    "Temperature":null,
+    "pH":null,
+    "Alkalinity":null,
+    "DO":null,
+    "Conductivity":null,
+    "Salinity":null,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A27",
+    "Latitude":41.76445,
+    "Longitude":-71.39077,
+    "Temperature":null,
+    "pH":6.67,
+    "Alkalinity":null,
+    "DO":2.5,
+    "Conductivity":null,
+    "Salinity":null,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A28",
+    "Latitude":41.76477,
+    "Longitude":-71.38801,
+    "Temperature":null,
+    "pH":null,
+    "Alkalinity":null,
+    "DO":1.2,
+    "Conductivity":null,
+    "Salinity":7.8,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A29",
+    "Latitude":41.75468,
+    "Longitude":-71.32123,
+    "Temperature":null,
+    "pH":7.03,
+    "Alkalinity":null,
+    "DO":null,
+    "Conductivity":null,
+    "Salinity":null,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A30",
+    "Latitude":41.76028,
+    "Longitude":-71.31635,
+    "Temperature":null,
+    "pH":7.33,
+    "Alkalinity":null,
+    "DO":null,
+    "Conductivity":null,
+    "Salinity":null,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A31",
+    "Latitude":41.75993,
+    "Longitude":-71.31231,
+    "Temperature":null,
+    "pH":7.15,
+    "Alkalinity":null,
+    "DO":null,
+    "Conductivity":null,
+    "Salinity":null,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A32",
+    "Latitude":41.76837,
+    "Longitude":-71.32151,
+    "Temperature":null,
+    "pH":7.75,
+    "Alkalinity":null,
+    "DO":8.67,
+    "Conductivity":null,
+    "Salinity":28.56,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A33",
+    "Latitude":41.77271,
+    "Longitude":-71.32272,
+    "Temperature":null,
+    "pH":7.84,
+    "Alkalinity":null,
+    "DO":9.23,
+    "Conductivity":null,
+    "Salinity":26.86,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A34",
+    "Latitude":41.7734,
+    "Longitude":-71.32338,
+    "Temperature":null,
+    "pH":7.63,
+    "Alkalinity":null,
+    "DO":9.09,
+    "Conductivity":null,
+    "Salinity":26.64,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A35",
+    "Latitude":41.76627,
+    "Longitude":-71.3191,
+    "Temperature":null,
+    "pH":7.46,
+    "Alkalinity":null,
+    "DO":9.16,
+    "Conductivity":null,
+    "Salinity":28.57,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A36",
+    "Latitude":41.75821,
+    "Longitude":-71.31816,
+    "Temperature":null,
+    "pH":8.11,
+    "Alkalinity":null,
+    "DO":8.03,
+    "Conductivity":null,
+    "Salinity":29.19,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A37",
+    "Latitude":41.75156,
+    "Longitude":-71.31965,
+    "Temperature":null,
+    "pH":7.66,
+    "Alkalinity":null,
+    "DO":8.37,
+    "Conductivity":null,
+    "Salinity":29.23,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A38",
+    "Latitude":41.75998,
+    "Longitude":-71.31986,
+    "Temperature":null,
+    "pH":8.21,
+    "Alkalinity":null,
+    "DO":7.11,
+    "Conductivity":null,
+    "Salinity":29.08,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A39",
+    "Latitude":41.76837,
+    "Longitude":-71.32151,
+    "Temperature":null,
+    "pH":7.97,
+    "Alkalinity":null,
+    "DO":8.59,
+    "Conductivity":null,
+    "Salinity":22.09,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A40",
+    "Latitude":41.77271,
+    "Longitude":-71.32272,
+    "Temperature":null,
+    "pH":7.86,
+    "Alkalinity":null,
+    "DO":8.47,
+    "Conductivity":null,
+    "Salinity":24.86,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A41",
+    "Latitude":41.76627,
+    "Longitude":-71.3191,
+    "Temperature":null,
+    "pH":7.54,
+    "Alkalinity":null,
+    "DO":null,
+    "Conductivity":null,
+    "Salinity":null,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A42",
+    "Latitude":41.75821,
+    "Longitude":-71.31816,
+    "Temperature":null,
+    "pH":8.22,
+    "Alkalinity":null,
+    "DO":null,
+    "Conductivity":null,
+    "Salinity":28.9,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  },
+  {
+    "Year":2015,
+    "Sample_ID":"A43",
+    "Latitude":41.75156,
+    "Longitude":-71.31965,
+    "Temperature":null,
+    "pH":7.69,
+    "Alkalinity":null,
+    "DO":7.83,
+    "Conductivity":null,
+    "Salinity":29.29,
+    "Collected":null,
+    "NH4":null,
+    "NO3":null,
+    "PO4":null,
+    "SiO2":null,
+    "Li":null,
+    "B":null,
+    "Mg":null,
+    "Ca":null,
+    "V":null,
+    "Cr":null,
+    "Mn":null,
+    "Fe":null,
+    "Ni":null,
+    "Cu":null,
+    "Zn":null,
+    "As":null,
+    "Se":null,
+    "Sr":null,
+    "Mo":null,
+    "Sb":null,
+    "Ba":null,
+    "Pb":null
+  }
+]
+leaflet.css#
+
+/* required styles */
+
+.leaflet-map-pane,
+.leaflet-tile,
+.leaflet-marker-icon,
+.leaflet-marker-shadow,
+.leaflet-tile-pane,
+.leaflet-tile-container,
+.leaflet-overlay-pane,
+.leaflet-shadow-pane,
+.leaflet-marker-pane,
+.leaflet-popup-pane,
+.leaflet-overlay-pane svg,
+.leaflet-zoom-box,
+.leaflet-image-layer,
+.leaflet-layer {
+	position: absolute;
+	left: 0;
+	top: 0;
+	}
+.leaflet-container {
+	overflow: hidden;
+	-ms-touch-action: none;
+	}
+.leaflet-tile,
+.leaflet-marker-icon,
+.leaflet-marker-shadow {
+	-webkit-user-select: none;
+	   -moz-user-select: none;
+	        user-select: none;
+	-webkit-user-drag: none;
+	}
+.leaflet-marker-icon,
+.leaflet-marker-shadow {
+	display: block;
+	}
+/* map is broken in FF if you have max-width: 100% on tiles */
+.leaflet-container img {
+	max-width: none !important;
+	}
+/* stupid Android 2 doesn't understand "max-width: none" properly */
+.leaflet-container img.leaflet-image-layer {
+	max-width: 15000px !important;
+	}
+.leaflet-tile {
+	filter: inherit;
+	visibility: hidden;
+	}
+.leaflet-tile-loaded {
+	visibility: inherit;
+	}
+.leaflet-zoom-box {
+	width: 0;
+	height: 0;
+	}
+/* workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=888319 */
+.leaflet-overlay-pane svg {
+	-moz-user-select: none;
+	}
+
+.leaflet-tile-pane    { z-index: 2; }
+.leaflet-objects-pane { z-index: 3; }
+.leaflet-overlay-pane { z-index: 4; }
+.leaflet-shadow-pane  { z-index: 5; }
+.leaflet-marker-pane  { z-index: 6; }
+.leaflet-popup-pane   { z-index: 7; }
+
+.leaflet-vml-shape {
+	width: 1px;
+	height: 1px;
+	}
+.lvml {
+	behavior: url(#default#VML);
+	display: inline-block;
+	position: absolute;
+	}
+
+
+/* control positioning */
+
+.leaflet-control {
+	position: relative;
+	z-index: 7;
+	pointer-events: auto;
+	}
+.leaflet-top,
+.leaflet-bottom {
+	position: absolute;
+	z-index: 1000;
+	pointer-events: none;
+	}
+.leaflet-top {
+	top: 0;
+	}
+.leaflet-right {
+	right: 0;
+	}
+.leaflet-bottom {
+	bottom: 0;
+	}
+.leaflet-left {
+	left: 0;
+	}
+.leaflet-control {
+	float: left;
+	clear: both;
+	}
+.leaflet-right .leaflet-control {
+	float: right;
+	}
+.leaflet-top .leaflet-control {
+	margin-top: 10px;
+	}
+.leaflet-bottom .leaflet-control {
+	margin-bottom: 10px;
+	}
+.leaflet-left .leaflet-control {
+	margin-left: 10px;
+	}
+.leaflet-right .leaflet-control {
+	margin-right: 10px;
+	}
+
+
+/* zoom and fade animations */
+
+.leaflet-fade-anim .leaflet-tile,
+.leaflet-fade-anim .leaflet-popup {
+	opacity: 0;
+	-webkit-transition: opacity 0.2s linear;
+	   -moz-transition: opacity 0.2s linear;
+	     -o-transition: opacity 0.2s linear;
+	        transition: opacity 0.2s linear;
+	}
+.leaflet-fade-anim .leaflet-tile-loaded,
+.leaflet-fade-anim .leaflet-map-pane .leaflet-popup {
+	opacity: 1;
+	}
+
+.leaflet-zoom-anim .leaflet-zoom-animated {
+	-webkit-transition: -webkit-transform 0.25s cubic-bezier(0,0,0.25,1);
+	   -moz-transition:    -moz-transform 0.25s cubic-bezier(0,0,0.25,1);
+	     -o-transition:      -o-transform 0.25s cubic-bezier(0,0,0.25,1);
+	        transition:         transform 0.25s cubic-bezier(0,0,0.25,1);
+	}
+.leaflet-zoom-anim .leaflet-tile,
+.leaflet-pan-anim .leaflet-tile,
+.leaflet-touching .leaflet-zoom-animated {
+	-webkit-transition: none;
+	   -moz-transition: none;
+	     -o-transition: none;
+	        transition: none;
+	}
+
+.leaflet-zoom-anim .leaflet-zoom-hide {
+	visibility: hidden;
+	}
+
+
+/* cursors */
+
+.leaflet-clickable {
+	cursor: pointer;
+	}
+.leaflet-container {
+	cursor: -webkit-grab;
+	cursor:    -moz-grab;
+	}
+.leaflet-popup-pane,
+.leaflet-control {
+	cursor: auto;
+	}
+.leaflet-dragging .leaflet-container,
+.leaflet-dragging .leaflet-clickable {
+	cursor: move;
+	cursor: -webkit-grabbing;
+	cursor:    -moz-grabbing;
+	}
+
+
+/* visual tweaks */
+
+.leaflet-container {
+	background: #ddd;
+	outline: 0;
+	}
+.leaflet-container a {
+	color: #0078A8;
+	}
+.leaflet-container a.leaflet-active {
+	outline: 2px solid orange;
+	}
+.leaflet-zoom-box {
+	border: 2px dotted #38f;
+	background: rgba(255,255,255,0.5);
+	}
+
+
+/* general typography */
+.leaflet-container {
+	font: 12px/1.5 "Helvetica Neue", Arial, Helvetica, sans-serif;
+	}
+
+
+/* general toolbar styles */
+
+.leaflet-bar {
+	box-shadow: 0 1px 5px rgba(0,0,0,0.65);
+	border-radius: 4px;
+	}
+.leaflet-bar a,
+.leaflet-bar a:hover {
+	background-color: #fff;
+	border-bottom: 1px solid #ccc;
+	width: 26px;
+	height: 26px;
+	line-height: 26px;
+	display: block;
+	text-align: center;
+	text-decoration: none;
+	color: black;
+	}
+.leaflet-bar a,
+.leaflet-control-layers-toggle {
+	background-position: 50% 50%;
+	background-repeat: no-repeat;
+	display: block;
+	}
+.leaflet-bar a:hover {
+	background-color: #f4f4f4;
+	}
+.leaflet-bar a:first-child {
+	border-top-left-radius: 4px;
+	border-top-right-radius: 4px;
+	}
+.leaflet-bar a:last-child {
+	border-bottom-left-radius: 4px;
+	border-bottom-right-radius: 4px;
+	border-bottom: none;
+	}
+.leaflet-bar a.leaflet-disabled {
+	cursor: default;
+	background-color: #f4f4f4;
+	color: #bbb;
+	}
+
+.leaflet-touch .leaflet-bar a {
+	width: 30px;
+	height: 30px;
+	line-height: 30px;
+	}
+
+
+/* zoom control */
+
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out {
+	font: bold 18px 'Lucida Console', Monaco, monospace;
+	text-indent: 1px;
+	}
+.leaflet-control-zoom-out {
+	font-size: 20px;
+	}
+
+.leaflet-touch .leaflet-control-zoom-in {
+	font-size: 22px;
+	}
+.leaflet-touch .leaflet-control-zoom-out {
+	font-size: 24px;
+	}
+
+
+/* layers control */
+
+.leaflet-control-layers {
+	box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+	background: #fff;
+	border-radius: 5px;
+	}
+.leaflet-control-layers-toggle {
+	background-image: url(images/layers.png);
+	width: 36px;
+	height: 36px;
+	}
+.leaflet-retina .leaflet-control-layers-toggle {
+	background-image: url(images/layers-2x.png);
+	background-size: 26px 26px;
+	}
+.leaflet-touch .leaflet-control-layers-toggle {
+	width: 44px;
+	height: 44px;
+	}
+.leaflet-control-layers .leaflet-control-layers-list,
+.leaflet-control-layers-expanded .leaflet-control-layers-toggle {
+	display: none;
+	}
+.leaflet-control-layers-expanded .leaflet-control-layers-list {
+	display: block;
+	position: relative;
+	}
+.leaflet-control-layers-expanded {
+	padding: 6px 10px 6px 6px;
+	color: #333;
+	background: #fff;
+	}
+.leaflet-control-layers-selector {
+	margin-top: 2px;
+	position: relative;
+	top: 1px;
+	}
+.leaflet-control-layers label {
+	display: block;
+	}
+.leaflet-control-layers-separator {
+	height: 0;
+	border-top: 1px solid #ddd;
+	margin: 5px -10px 5px -6px;
+	}
+
+
+/* attribution and scale controls */
+
+.leaflet-container .leaflet-control-attribution {
+	background: #fff;
+	background: rgba(255, 255, 255, 0.7);
+	margin: 0;
+	}
+.leaflet-control-attribution,
+.leaflet-control-scale-line {
+	padding: 0 5px;
+	color: #333;
+	}
+.leaflet-control-attribution a {
+	text-decoration: none;
+	}
+.leaflet-control-attribution a:hover {
+	text-decoration: underline;
+	}
+.leaflet-container .leaflet-control-attribution,
+.leaflet-container .leaflet-control-scale {
+	font-size: 11px;
+	}
+.leaflet-left .leaflet-control-scale {
+	margin-left: 5px;
+	}
+.leaflet-bottom .leaflet-control-scale {
+	margin-bottom: 5px;
+	}
+.leaflet-control-scale-line {
+	border: 2px solid #777;
+	border-top: none;
+	line-height: 1.1;
+	padding: 2px 5px 1px;
+	font-size: 11px;
+	white-space: nowrap;
+	overflow: hidden;
+	-moz-box-sizing: content-box;
+	     box-sizing: content-box;
+
+	background: #fff;
+	background: rgba(255, 255, 255, 0.5);
+	}
+.leaflet-control-scale-line:not(:first-child) {
+	border-top: 2px solid #777;
+	border-bottom: none;
+	margin-top: -2px;
+	}
+.leaflet-control-scale-line:not(:first-child):not(:last-child) {
+	border-bottom: 2px solid #777;
+	}
+
+.leaflet-touch .leaflet-control-attribution,
+.leaflet-touch .leaflet-control-layers,
+.leaflet-touch .leaflet-bar {
+	box-shadow: none;
+	}
+.leaflet-touch .leaflet-control-layers,
+.leaflet-touch .leaflet-bar {
+	border: 2px solid rgba(0,0,0,0.2);
+	background-clip: padding-box;
+	}
+
+
+/* popup */
+
+.leaflet-popup {
+	position: absolute;
+	text-align: center;
+	}
+.leaflet-popup-content-wrapper {
+	padding: 1px;
+	text-align: left;
+	border-radius: 12px;
+	}
+.leaflet-popup-content {
+	margin: 13px 19px;
+	line-height: 1.4;
+	}
+.leaflet-popup-content p {
+	margin: 18px 0;
+	}
+.leaflet-popup-tip-container {
+	margin: 0 auto;
+	width: 40px;
+	height: 20px;
+	position: relative;
+	overflow: hidden;
+	}
+.leaflet-popup-tip {
+	width: 17px;
+	height: 17px;
+	padding: 1px;
+
+	margin: -10px auto 0;
+
+	-webkit-transform: rotate(45deg);
+	   -moz-transform: rotate(45deg);
+	    -ms-transform: rotate(45deg);
+	     -o-transform: rotate(45deg);
+	        transform: rotate(45deg);
+	}
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+	background: white;
+
+	box-shadow: 0 3px 14px rgba(0,0,0,0.4);
+	}
+.leaflet-container a.leaflet-popup-close-button {
+	position: absolute;
+	top: 0;
+	right: 0;
+	padding: 4px 4px 0 0;
+	text-align: center;
+	width: 18px;
+	height: 14px;
+	font: 16px/14px Tahoma, Verdana, sans-serif;
+	color: #c3c3c3;
+	text-decoration: none;
+	font-weight: bold;
+	background: transparent;
+	}
+.leaflet-container a.leaflet-popup-close-button:hover {
+	color: #999;
+	}
+.leaflet-popup-scrolled {
+	overflow: auto;
+	border-bottom: 1px solid #ddd;
+	border-top: 1px solid #ddd;
+	}
+
+.leaflet-oldie .leaflet-popup-content-wrapper {
+	zoom: 1;
+	}
+.leaflet-oldie .leaflet-popup-tip {
+	width: 24px;
+	margin: 0 auto;
+
+	-ms-filter: "progid:DXImageTransform.Microsoft.Matrix(M11=0.70710678, M12=0.70710678, M21=-0.70710678, M22=0.70710678)";
+	filter: progid:DXImageTransform.Microsoft.Matrix(M11=0.70710678, M12=0.70710678, M21=-0.70710678, M22=0.70710678);
+	}
+.leaflet-oldie .leaflet-popup-tip-container {
+	margin-top: -1px;
+	}
+
+.leaflet-oldie .leaflet-control-zoom,
+.leaflet-oldie .leaflet-control-layers,
+.leaflet-oldie .leaflet-popup-content-wrapper,
+.leaflet-oldie .leaflet-popup-tip {
+	border: 1px solid #999;
+	}
+
+
+/* div icon */
+
+.leaflet-div-icon {
+	background: #fff;
+	border: 1px solid #666;
+	}
