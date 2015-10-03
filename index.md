@@ -62,7 +62,8 @@ The laboratory component consists of four sessions for the **Fall 2015** semeste
       <span class="label label-info">ICP-MS</span>
   </td>
   <td>10/20/2015</td>
-      <td><a href="https://github.com/GDGTs/gdgts.github.io/blob/master/_includes/Geo1370%20-%20Metals%20Lab%20Data.xlsx?raw=true">Data</a></td>
+  <td>--</td>
+      <!-- <td><a href="https://github.com/GDGTs/gdgts.github.io/blob/master/_includes/Geo1370%20-%20Metals%20Lab%20Data.xlsx?raw=true">Data</a></td> -->
   </tr>
 
   <tr>
@@ -80,7 +81,8 @@ The laboratory component consists of four sessions for the **Fall 2015** semeste
       <span class="label label-info">UV-Vis</span>
   </td>
   <td>11/02/2015</td>
-     <td><a href="https://github.com/GDGTs/gdgts.github.io/blob/master/_includes/Geo1370%20-%20Nutrient%20Lab%20Data.xlsx?raw=true">Data</a></td>
+  <td>--</td>
+     <!-- <td><a href="https://github.com/GDGTs/gdgts.github.io/blob/master/_includes/Geo1370%20-%20Nutrient%20Lab%20Data.xlsx?raw=true">Data</a></td> -->
   </tr>
 
   <tr>
