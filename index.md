@@ -37,7 +37,7 @@ The laboratory component consists of four sessions for the **Fall 2015** semeste
       <span class="label label-info">in-situ measurement probes</span>
   </td>
   <td>N/A</td>
-  <td><a href="https://github.com/zhengyinsui/zhengyinsui.github.io/blob/master/_includes/2015-Geo1370-Field%20trip%20data.xlsx?raw=true">Data</a></td>
+  <td><a href="https://github.com/zhengyinsui/zhengyinsui.github.io/blob/master/_includes/used_metal/2015-Geo1370-Field%20trip%20data.xlsx?raw=true">Data</a></td>
   </tr>
 
 
@@ -63,7 +63,7 @@ The laboratory component consists of four sessions for the **Fall 2015** semeste
   </td>
   <td>10/20/2015</td>
   <!-- <td>--</td> -->
-      <td><a href="https://github.com/zhengyinsui/zhengyinsui.github.io/blob/master/_includes/2015-Geo1370-Metals%20results.xlsx?raw=true">Data</a></td>
+      <td><a href="https://github.com/zhengyinsui/zhengyinsui.github.io/blob/master/_includes/used_metal/2015-Geo1370-Metals%20results.xlsx?raw=true">Data</a></td>
   </tr>
 
   <tr>
