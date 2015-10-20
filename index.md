@@ -80,10 +80,10 @@ The laboratory component consists of four sessions for the **Fall 2015** semeste
   <td>
       <span class="label label-info">UV-Vis</span>
   </td>
-  <td>11/02/2015</td>
+  <td>11/05/2015</td>
   <td>--</td>
-     <!-- <td><a href="https://github.com/GDGTs/gdgts.github.io/blob/master/_includes/Geo1370%20-%20Nutrient%20Lab%20Data.xlsx?raw=true">Data</a></td> -->
-  </tr>
+     <td><a href="https://github.com/zhengyinsui/zhengyinsui.github.io/blob/master/_includes/2015_nutrient/2015%20-%20Geo1370%20-%20Nutrient%20Lab%20Data.xlsx?raw=true">Data</a></td>
+</tr>
 
   <tr>
   <td>4</td>
